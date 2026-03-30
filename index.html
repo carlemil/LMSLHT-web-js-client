@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L-System Image Converter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+      font-size: 1.8rem;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    label.file-btn, button {
+      display: inline-block;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    label.file-btn {
+      background: #0f3460;
+      color: #e0e0e0;
+    }
+    label.file-btn:hover { background: #16498a; }
+
+    button {
+      background: #533483;
+      color: #e0e0e0;
+    }
+    button:hover { background: #6b44a0; }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    input[type="file"] { display: none; }
+
+    .sliders {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 0.4rem 1rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .sliders label {
+      font-size: 0.85rem;
+      color: #aaa;
+      text-align: right;
+    }
+
+    .sliders input[type="range"] {
+      width: 100%;
+      accent-color: #533483;
+    }
+
+    .sliders .val {
+      font-size: 0.8rem;
+      color: #888;
+      min-width: 2.5em;
+      text-align: center;
+    }
+
+    select {
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #16213e;
+      color: #e0e0e0;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .preview {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 100%;
+    }
+
+    .preview figure {
+      text-align: center;
+    }
+
+    .preview figcaption {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    canvas {
+      max-width: 500px;
+      max-height: 500px;
+      width: auto;
+      height: auto;
+      border-radius: 8px;
+      background: #16213e;
+    }
+
+    .status {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #888;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <h1>L-System Image Converter</h1>
+
+  <div class="controls">
+    <label class="file-btn">
+      Choose Image
+      <input type="file" id="fileInput" accept="image/*">
+    </label>
+    <select id="systemSelect"></select>
+    <button id="convertBtn" disabled>Convert</button>
+    <button id="downloadBtn" disabled>Download</button>
+  </div>
+
+  <div class="sliders">
+    <label for="iterSlider">Iterations</label>
+    <input type="range" id="iterSlider" min="1" max="8" value="3" step="1">
+    <span class="val" id="iterVal">3</span>
+
+    <label for="brightSlider">Brightness</label>
+    <input type="range" id="brightSlider" min="-2" max="2" value="0" step="0.1">
+    <span class="val" id="brightVal">0</span>
+
+    <label for="contrastSlider">Contrast</label>
+    <input type="range" id="contrastSlider" min="0" max="1" value="0.3" step="0.05">
+    <span class="val" id="contrastVal">0.3</span>
+
+    <label for="sizeSlider">Output Size</label>
+    <input type="range" id="sizeSlider" min="0" max="5" value="2" step="1">
+    <span class="val" id="sizeVal">1024</span>
+  </div>
+
+  <div class="preview">
+    <figure id="originalFig" hidden>
+      <figcaption>Original</figcaption>
+      <canvas id="originalCanvas"></canvas>
+    </figure>
+    <figure id="resultFig" hidden>
+      <figcaption>L-System</figcaption>
+      <canvas id="resultCanvas"></canvas>
+    </figure>
+  </div>
+
+  <p class="status" id="status"></p>
+
+  <script>
+    // ========== L-System Definitions (ported from LSystem.kt) ==========
+    const SYSTEMS = [
+      {
+        name: "Dragon", angle: 90,
+        rules: { A: "A+BF", B: "FA-B" },
+        forwardChars: new Set(["F"]),
+        axiom: "FA",
+        lineWidthExp: 1.45, lineWidthBold: 0.1,
+        minIterations: 1, maxIterations: 13, intermediateSplines: 3,
+        defaultIterations: 7, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "TwinDragon", angle: 90,
+        rules: { A: "A+BF", B: "FA-B" },
+        forwardChars: new Set(["F"]),
+        axiom: "FA+FA+",
+        lineWidthExp: 1.45, lineWidthBold: 0.1,
+        minIterations: 1, maxIterations: 14, intermediateSplines: 3,
+        defaultIterations: 8, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Fudgeflake", angle: 30,
+        rules: { F: "+F----F++++F-" },
+        forwardChars: new Set(["F"]),
+        axiom: "F++++F++++F",
+        lineWidthExp: 1.667, lineWidthBold: 0.15,
+        minIterations: 1, maxIterations: 8, intermediateSplines: 1,
+        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Hilbert", angle: 90,
+        rules: { A: "-BF+AFA+FB-", B: "+AF-BFB-FA+" },
+        forwardChars: new Set(["F"]),
+        axiom: "A",
+        lineWidthExp: 2.0, lineWidthBold: 0.5,
+        minIterations: 1, maxIterations: 8, intermediateSplines: 0,
+        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "SierpinskiTriangle", angle: 60,
+        rules: { A: "BF-AF-B", B: "AF+BF+A" },
+        forwardChars: new Set(["F"]),
+        axiom: "A",
+        lineWidthExp: 2.0, lineWidthBold: 0.4,
+        minIterations: 1, maxIterations: 9, intermediateSplines: 0,
+        defaultIterations: 6, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "SierpinskiCurve", angle: 45,
+        rules: { X: "XF+G+XF--F--XF+G+X" },
+        forwardChars: new Set(["F", "G"]),
+        axiom: "F--XF--F--XF",
+        lineWidthExp: 2.0, lineWidthBold: 0.15,
+        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "SierpinskiSquare", angle: 90,
+        rules: { X: "XF-F+F-XF+F+XF-F+F-X" },
+        forwardChars: new Set(["F"]),
+        axiom: "F+XF+F+XF",
+        lineWidthExp: 2.0, lineWidthBold: 0.15,
+        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Gosper", angle: 60,
+        rules: { A: "A-B--B+A++AA+B-", B: "+A-BB--B-A++A+B" },
+        forwardChars: new Set(["A", "B"]),
+        axiom: "A",
+        lineWidthExp: 2.5, lineWidthBold: 0.28,
+        minIterations: 1, maxIterations: 5, intermediateSplines: 0,
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Peano", angle: 90,
+        rules: { L: "LFRFL-F-RFLFR+F+LFRFL", R: "RFLFR+F+LFRFL-F-RFLFR" },
+        forwardChars: new Set(["F"]),
+        axiom: "L",
+        lineWidthExp: 3.0, lineWidthBold: 0.35,
+        minIterations: 1, maxIterations: 5, intermediateSplines: 0,
+        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Moore", angle: 90,
+        rules: { A: "-BF+AFA+FB-", B: "+AF-BFB-FA+" },
+        forwardChars: new Set(["F"]),
+        axiom: "AFA+F+AFA",
+        lineWidthExp: 2.0, lineWidthBold: 0.2,
+        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
+        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "QuadraticGosper", angle: 90,
+        rules: {
+          X: "XFX-YF-YF+FX+FX-YF-YFFX+YF+FXFXYF-FX+YF+FXFX+YF-FXYF-YF-FX+FX+YFYF-",
+          Y: "+FXFX-YF-YF+FX+FXYF+FX-YFYF-FX-YF+FXYFYF-FX-YFFX+FX+YF-YF-FX+FX+YFY"
+        },
+        forwardChars: new Set(["F"]),
+        axiom: "-YF",
+        lineWidthExp: 4.0, lineWidthBold: 0.2,
+        minIterations: 1, maxIterations: 3, intermediateSplines: 0,
+        defaultIterations: 2, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Cross", angle: 90,
+        rules: { F: "F+FF++F+F" },
+        forwardChars: new Set(["F"]),
+        axiom: "F+F+F+F",
+        lineWidthExp: 3.0, lineWidthBold: 0.2,
+        minIterations: 1, maxIterations: 6, intermediateSplines: 0,
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Pentaplexity", angle: 36,
+        rules: { F: "F++F++F+++++F-F++F" },
+        forwardChars: new Set(["F"]),
+        axiom: "F++F++F++F++F",
+        lineWidthExp: 3.0, lineWidthBold: 0.2,
+        minIterations: 1, maxIterations: 5, intermediateSplines: 0,
+        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "Tiles", angle: 90,
+        rules: { F: "FF+F-F+F+FF" },
+        forwardChars: new Set(["F"]),
+        axiom: "F+F+F+F",
+        lineWidthExp: 3.0, lineWidthBold: 0.2,
+        minIterations: 1, maxIterations: 5, intermediateSplines: 3,
+        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+      },
+      {
+        name: "KrishnaAnklets", angle: 45,
+        rules: { X: "XFX--XFX" },
+        forwardChars: new Set(["F"]),
+        axiom: "-X--X",
+        lineWidthExp: 2.0, lineWidthBold: 0.15,
+        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+      }
+    ];
+
+    // ========== L-System Generator (ported from LSystemGenerator.kt) ==========
+    function generate(axiom, rules, iterations, forwardChars) {
+      let current = axiom;
+      for (let i = 0; i < iterations; i++) {
+        let next = "";
+        for (const c of current) {
+          next += (c in rules) ? rules[c] : c;
+        }
+        current = next;
+      }
+      // Replace all forward chars with "F"
+      let result = "";
+      for (const c of current) {
+        result += forwardChars.has(c) ? "F" : c;
+      }
+      return result;
+    }
+
+    function convertToPolyPointList(instructions, systemAngle, forwardChars) {
+      const list = [];
+      let x = 0, y = 0, angle = Math.PI / 2;
+      const stack = [];
+
+      list.push({ x, y, w: 1 });
+      for (const c of instructions) {
+        switch (c) {
+          case "-": angle -= systemAngle; break;
+          case "+": angle += systemAngle; break;
+          case "[": stack.push({ x, y, w: 1 }); break;
+          case "]": { const p = stack.pop(); x = p.x; y = p.y; break; }
+          default:
+            if (forwardChars.has(c)) {
+              x += Math.sin(angle);
+              y += Math.cos(angle);
+              list.push({ x, y, w: 1 });
+            }
+        }
+      }
+      return list;
+    }
+
+    function scalePolyPointList(list) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (const p of list) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
+
+      const scaleX = 1 / (maxX - minX);
+      const scaleY = 1 / (maxY - minY);
+      const scale = Math.min(scaleX, scaleY);
+
+      const xSpace = maxX - minX;
+      const ySpace = maxY - minY;
+      const offsetX = xSpace < ySpace ? (ySpace - xSpace) / 2 : 0;
+      const offsetY = ySpace < xSpace ? (xSpace - ySpace) / 2 : 0;
+
+      return list.map(p => ({
+        x: (p.x - minX + offsetX) * scale,
+        y: (p.y - minY + offsetY) * scale,
+        w: 1
+      }));
+    }
+
+    function getMidPoint(p0, p1) {
+      return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2, w: (p0.w + p1.w) / 2 };
+    }
+
+    function addSplineBetweenPoints(pp1, pp2, pp3, output, intermediateSplines) {
+      const tInc = 1.0 / intermediateSplines;
+      for (let t = 0; t < 1.0 - tInc / 2; t += tInc) {
+        const x = Math.pow(1 - t, 2) * pp1.x + 2 * (1 - t) * t * pp2.x + Math.pow(t, 2) * pp3.x;
+        const y = Math.pow(1 - t, 2) * pp1.y + 2 * (1 - t) * t * pp2.y + Math.pow(t, 2) * pp3.y;
+        output.push({ x, y, w: 1 });
+      }
+    }
+
+    function smoothenCurvature(list, intermediateSplines) {
+      const smoothed = [];
+      for (let i = -1; i < list.length; i++) {
+        const p01 = list[Math.max(i - 1, 0)];
+        const p02 = list[Math.max(i, 0)];
+        const p03 = list[Math.min(i + 1, list.length - 1)];
+        addSplineBetweenPoints(getMidPoint(p01, p02), p02, getMidPoint(p02, p03), smoothed, intermediateSplines);
+      }
+      return smoothed;
+    }
+
+    function generatePolygon(system, iterations) {
+      const instructions = generate(system.axiom, system.rules, iterations, system.forwardChars);
+      const angleRad = system.angle / 180 * Math.PI;
+      const xyList = convertToPolyPointList(instructions, angleRad, system.forwardChars);
+      const scaled = scalePolyPointList(xyList);
+      if (system.intermediateSplines === 0) return scaled;
+      return smoothenCurvature(scaled, system.intermediateSplines);
+    }
+
+    function getRecommendedWidths(iteration, system) {
+      const maxWidth = (1.0 / Math.pow(system.lineWidthExp, iteration)) * system.lineWidthBold;
+      const minWidth = maxWidth / 10.0;
+      return { minWidth, maxWidth };
+    }
+
+    function setLineWidthFromImage(line, luminance, imgW, imgH, minWidth, maxWidth) {
+      const xScale = imgW - 1;
+      const yScale = imgH - 1;
+      for (const p of line) {
+        const lx = Math.min(Math.max(Math.floor(p.x * xScale), 0), imgW - 1);
+        const ly = Math.min(Math.max(Math.floor(p.y * yScale), 0), imgH - 1);
+        const lum = luminance[ly * imgW + lx];
+        p.w = minWidth + lum * (maxWidth - minWidth);
+      }
+    }
+
+    function smoothenWidth(list) {
+      const weights = [0.05, 0.1, 0.2, 0.3, 0.2, 0.1, 0.05];
+      for (let i = 0; i < list.length; i++) {
+        let sum = 0;
+        for (let j = -3; j <= 3; j++) {
+          const idx = Math.min(Math.max(i + j, 0), list.length - 1);
+          sum += list[idx].w * weights[j + 3];
+        }
+        list[i]._sw = sum;
+      }
+      for (const p of list) { p.w = p._sw; delete p._sw; }
+    }
+
+    function addSideBuffer(buffer, line) {
+      for (const p of line) {
+        p.x = buffer + p.x * (1 - 2 * buffer);
+        p.y = buffer + p.y * (1 - 2 * buffer);
+      }
+    }
+
+    // ========== Variable Width Curve / Hull (ported from VariableWidthCurve.kt) ==========
+    function buildHullFromPolygon(ppList) {
+      const leftHull = [];
+      const rightHull = [];
+      for (let i = 0; i < ppList.length - 2; i++) {
+        leftHull.push({ x: 0, y: 0, w: 1 });
+        rightHull.push({ x: 0, y: 0, w: 1 });
+      }
+
+      for (let i = 1; i < ppList.length - 1; i++) {
+        const p0 = ppList[i - 1];
+        const p1 = ppList[i];
+
+        const a = p0.x - p1.x;
+        const b = p0.y - p1.y;
+        const c = Math.sqrt(a * a + b * b);
+
+        if (c === 0) continue;
+
+        const alfa = Math.asin(a / c);
+        let alfaPlus90 = alfa + Math.PI / 2;
+        let alfaMinus90 = alfa - Math.PI / 2;
+        if (b < 0) { alfaPlus90 = -alfaPlus90; alfaMinus90 = -alfaMinus90; }
+
+        const width = (p0.w + p1.w) / 2;
+        const mx = (p0.x + p1.x) / 2;
+        const my = (p0.y + p1.y) / 2;
+
+        leftHull[i - 1].x = mx + width * Math.sin(alfaPlus90);
+        leftHull[i - 1].y = my + width * Math.cos(alfaPlus90);
+        rightHull[i - 1].x = mx + width * Math.sin(alfaMinus90);
+        rightHull[i - 1].y = my + width * Math.cos(alfaMinus90);
+      }
+
+      return [...leftHull, ...rightHull.reverse()];
+    }
+
+    // ========== Extract Luminance ==========
+    function extractLuminance(canvas) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+      const size = Math.min(w, h);
+      const offX = Math.floor((w - size) / 2);
+      const offY = Math.floor((h - size) / 2);
+      const imgData = ctx.getImageData(offX, offY, size, size);
+      const data = imgData.data;
+      const lum = new Float64Array(size * size);
+      for (let i = 0; i < size * size; i++) {
+        const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+        // Invert: dark pixels -> thick lines (high luminance value)
+        lum[i] = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      }
+      return { lum, size };
+    }
+
+    // ========== Drawing ==========
+    function drawLSystem(canvas, hull) {
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width, h = canvas.height;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+
+      if (hull.length < 3) return;
+
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+
+      const init = getMidPoint(hull[hull.length - 1], hull[hull.length - 2]);
+      ctx.moveTo(init.x * w, init.y * h);
+
+      for (let i = 0; i < hull.length; i++) {
+        const quadStart = hull[(i === 0 ? hull.length : i) - 1];
+        const nextQuad = hull[i];
+        const quadEnd = getMidPoint(quadStart, nextQuad);
+        ctx.quadraticCurveTo(quadStart.x * w, quadStart.y * h, quadEnd.x * w, quadEnd.y * h);
+      }
+
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // ========== Deduplicate consecutive points ==========
+    function dedup(line) {
+      if (line.length === 0) return line;
+      const result = [line[0]];
+      for (let i = 1; i < line.length; i++) {
+        const prev = result[result.length - 1];
+        if (Math.abs(line[i].x - prev.x) > 1e-10 || Math.abs(line[i].y - prev.y) > 1e-10) {
+          result.push(line[i]);
+        }
+      }
+      return result;
+    }
+
+    // ========== UI ==========
+    const fileInput = document.getElementById("fileInput");
+    const convertBtn = document.getElementById("convertBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const originalCanvas = document.getElementById("originalCanvas");
+    const resultCanvas = document.getElementById("resultCanvas");
+    const originalFig = document.getElementById("originalFig");
+    const resultFig = document.getElementById("resultFig");
+    const status = document.getElementById("status");
+    const systemSelect = document.getElementById("systemSelect");
+    const iterSlider = document.getElementById("iterSlider");
+    const iterVal = document.getElementById("iterVal");
+    const brightSlider = document.getElementById("brightSlider");
+    const brightVal = document.getElementById("brightVal");
+    const contrastSlider = document.getElementById("contrastSlider");
+    const contrastVal = document.getElementById("contrastVal");
+    const sizeSlider = document.getElementById("sizeSlider");
+    const sizeValSpan = document.getElementById("sizeVal");
+
+    const SIZE_STEPS = [256, 512, 1024, 2048, 4096, 8192];
+    function getOutputSize() { return SIZE_STEPS[+sizeSlider.value]; }
+    sizeSlider.addEventListener("input", () => { sizeValSpan.textContent = getOutputSize(); });
+
+    let currentFileName = "lsystem.png";
+
+    // Populate system selector
+    SYSTEMS.sort((a, b) => a.name.localeCompare(b.name));
+    const defaultIndex = SYSTEMS.findIndex(s => s.name === "Moore");
+    SYSTEMS.forEach((sys, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = sys.name;
+      if (i === defaultIndex) opt.selected = true;
+      systemSelect.appendChild(opt);
+    });
+
+    function getSelectedSystem() {
+      return SYSTEMS[systemSelect.value];
+    }
+
+    // Reset all sliders to system defaults when system changes
+    function applySystemDefaults() {
+      const sys = getSelectedSystem();
+      iterSlider.min = sys.minIterations;
+      iterSlider.max = sys.maxIterations;
+      iterSlider.value = sys.defaultIterations;
+      iterVal.textContent = sys.defaultIterations;
+
+      brightSlider.value = sys.defaultBrightness;
+      brightVal.textContent = sys.defaultBrightness;
+
+      contrastSlider.value = sys.defaultContrast;
+      contrastVal.textContent = sys.defaultContrast;
+    }
+    systemSelect.addEventListener("change", applySystemDefaults);
+    applySystemDefaults();
+
+    iterSlider.addEventListener("input", () => { iterVal.textContent = iterSlider.value; });
+    brightSlider.addEventListener("input", () => { brightVal.textContent = brightSlider.value; });
+    contrastSlider.addEventListener("input", () => { contrastVal.textContent = contrastSlider.value; });
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      currentFileName = file.name.replace(/\.[^.]+$/, "") + "_lsystem.png";
+      status.textContent = "Loading image...";
+      resultFig.hidden = true;
+      downloadBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          originalCanvas.width = img.width;
+          originalCanvas.height = img.height;
+          originalCanvas.getContext("2d").drawImage(img, 0, 0);
+          originalFig.hidden = false;
+          convertBtn.disabled = false;
+          status.textContent = `Loaded: ${img.width} x ${img.height}px`;
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    convertBtn.addEventListener("click", () => {
+      status.textContent = "Generating L-System curve...";
+      convertBtn.disabled = true;
+
+      requestAnimationFrame(() => {
+        try {
+          const system = getSelectedSystem();
+          const iterations = +iterSlider.value;
+          const brightnessMod = +brightSlider.value;
+          const contrastMod = +contrastSlider.value;
+
+          // Generate L-system polygon
+          let line = generatePolygon(system, iterations);
+          line = dedup(line);
+
+          // Extract luminance from image (square crop from center)
+          const { lum, size } = extractLuminance(originalCanvas);
+
+          // Compute widths
+          const { minWidth, maxWidth } = getRecommendedWidths(iterations, system);
+          const brightness = Math.pow(2, brightnessMod);
+          const contrast = (1 - contrastMod) * (maxWidth + minWidth) / 2;
+
+          setLineWidthFromImage(
+            line, lum, size, size,
+            (minWidth + contrast) * brightness,
+            (maxWidth - contrast) * brightness
+          );
+
+          smoothenWidth(line);
+
+          const outputSideBuffer = maxWidth + 0.02;
+          addSideBuffer(outputSideBuffer, line);
+
+          // Build hull
+          const hull = buildHullFromPolygon(line);
+
+          // Draw result
+          const outSize = getOutputSize();
+          resultCanvas.width = outSize;
+          resultCanvas.height = outSize;
+          drawLSystem(resultCanvas, hull);
+
+          resultFig.hidden = false;
+          downloadBtn.disabled = false;
+          status.textContent = `Done! ${system.name}, ${iterations} iterations, ${line.length} points — output: ${outSize}x${outSize}px PNG`;
+        } catch (err) {
+          status.textContent = "Error: " + err.message;
+          console.error(err);
+        }
+        convertBtn.disabled = false;
+      });
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      resultCanvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = currentFileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    });
+  </script>
+</body>
+</html>
