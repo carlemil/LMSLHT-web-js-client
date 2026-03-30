@@ -708,6 +708,7 @@
       loadImageToCanvas(demoImg);
       runConvert();
     };
+    demoImg.onerror = () => { status.textContent = "Choose an image to get started."; };
     demoImg.src = "dag.png";
 
     downloadBtn.addEventListener("click", () => {
