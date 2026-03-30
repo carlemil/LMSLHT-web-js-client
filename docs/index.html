@@ -623,32 +623,16 @@
     brightSlider.addEventListener("input", () => { brightVal.textContent = brightSlider.value; });
     contrastSlider.addEventListener("input", () => { contrastVal.textContent = contrastSlider.value; });
 
-    fileInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    function loadImageToCanvas(img) {
+      originalCanvas.width = img.width;
+      originalCanvas.height = img.height;
+      originalCanvas.getContext("2d").drawImage(img, 0, 0);
+      originalFig.hidden = false;
+      convertBtn.disabled = false;
+      status.textContent = `Loaded: ${img.width} x ${img.height}px`;
+    }
 
-      currentFileName = file.name.replace(/\.[^.]+$/, "") + "_lsystem.png";
-      status.textContent = "Loading image...";
-      resultFig.hidden = true;
-      downloadBtn.disabled = true;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          originalCanvas.width = img.width;
-          originalCanvas.height = img.height;
-          originalCanvas.getContext("2d").drawImage(img, 0, 0);
-          originalFig.hidden = false;
-          convertBtn.disabled = false;
-          status.textContent = `Loaded: ${img.width} x ${img.height}px`;
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    convertBtn.addEventListener("click", () => {
+    function runConvert() {
       status.textContent = "Generating L-System curve...";
       convertBtn.disabled = true;
 
@@ -659,14 +643,11 @@
           const brightnessMod = +brightSlider.value;
           const contrastMod = +contrastSlider.value;
 
-          // Generate L-system polygon
           let line = generatePolygon(system, iterations);
           line = dedup(line);
 
-          // Extract luminance from image (square crop from center)
           const { lum, size } = extractLuminance(originalCanvas);
 
-          // Compute widths
           const { minWidth, maxWidth } = getRecommendedWidths(iterations, system);
           const brightness = Math.pow(2, brightnessMod);
           const contrast = (1 - contrastMod) * (maxWidth + minWidth) / 2;
@@ -682,10 +663,8 @@
           const outputSideBuffer = maxWidth + 0.02;
           addSideBuffer(outputSideBuffer, line);
 
-          // Build hull
           const hull = buildHullFromPolygon(line);
 
-          // Draw result
           const outSize = getOutputSize();
           resultCanvas.width = outSize;
           resultCanvas.height = outSize;
@@ -700,7 +679,36 @@
         }
         convertBtn.disabled = false;
       });
+    }
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      currentFileName = file.name.replace(/\.[^.]+$/, "") + "_lsystem.png";
+      status.textContent = "Loading image...";
+      resultFig.hidden = true;
+      downloadBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => loadImageToCanvas(img);
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
     });
+
+    convertBtn.addEventListener("click", runConvert);
+
+    // Load default demo image and render on startup
+    const demoImg = new Image();
+    demoImg.onload = () => {
+      currentFileName = "dag_lsystem.png";
+      loadImageToCanvas(demoImg);
+      runConvert();
+    };
+    demoImg.src = "dag.png";
 
     downloadBtn.addEventListener("click", () => {
       resultCanvas.toBlob((blob) => {
