@@ -126,6 +126,15 @@
       background: #16213e;
     }
 
+    .tip {
+      max-width: 500px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 1.5rem;
+      line-height: 1.4;
+    }
+
     .status {
       margin-top: 1rem;
       font-size: 0.85rem;
@@ -136,6 +145,7 @@
 </head>
 <body>
   <h1>L-System Image Converter</h1>
+  <p class="tip">For best results, use high-contrast images with bold, simple subjects — a face, a cartoon character, or a silhouette. Fine details will be lost.</p>
 
   <div class="controls">
     <label class="file-btn">
@@ -215,7 +225,7 @@
         axiom: "A",
         lineWidthExp: 2.0, lineWidthBold: 0.5,
         minIterations: 1, maxIterations: 8, intermediateSplines: 0,
-        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 7, defaultBrightness: 0, defaultContrast: 0.65
       },
       {
         name: "SierpinskiTriangle", angle: 60,
@@ -579,7 +589,7 @@
 
     // Populate system selector
     SYSTEMS.sort((a, b) => a.name.localeCompare(b.name));
-    const defaultIndex = SYSTEMS.findIndex(s => s.name === "Moore");
+    const defaultIndex = SYSTEMS.findIndex(s => s.name === "Hilbert");
     SYSTEMS.forEach((sys, i) => {
       const opt = document.createElement("option");
       opt.value = i;
