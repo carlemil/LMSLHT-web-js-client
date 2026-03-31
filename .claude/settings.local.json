@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(ls:*)",
+      "Bash(magick identify:*)",
+      "Bash(python -c \"from PIL import Image; i=Image.open\\(''D:/source/LMSLHT-web-js-client/docs/dag.png''\\); print\\(i.size\\)\")",
+      "Bash(magick D:/source/LMSLHT-web-js-client/docs/dag.png -resize 128x128 -quality 80 png:-)",
+      "Bash(magick D:/source/LMSLHT-web-js-client/docs/dag.png -resize 128x128 png:-)",
+      "Skill(update-config)"
+    ]
+  }
+}

@@ -153,7 +153,6 @@
       <input type="file" id="fileInput" accept="image/*">
     </label>
     <select id="systemSelect"></select>
-    <button id="convertBtn" disabled>Convert</button>
     <button id="downloadBtn" disabled>Download</button>
   </div>
 
@@ -198,7 +197,7 @@
         axiom: "FA",
         lineWidthExp: 1.45, lineWidthBold: 0.1,
         minIterations: 1, maxIterations: 13, intermediateSplines: 3,
-        defaultIterations: 7, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 11, defaultBrightness: 1, defaultContrast: 0.9
       },
       {
         name: "TwinDragon", angle: 90,
@@ -206,8 +205,8 @@
         forwardChars: new Set(["F"]),
         axiom: "FA+FA+",
         lineWidthExp: 1.45, lineWidthBold: 0.1,
-        minIterations: 1, maxIterations: 14, intermediateSplines: 3,
-        defaultIterations: 8, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 15, intermediateSplines: 3,
+        defaultIterations: 12, defaultBrightness: 0.7, defaultContrast: 0.75
       },
       {
         name: "Fudgeflake", angle: 30,
@@ -216,7 +215,7 @@
         axiom: "F++++F++++F",
         lineWidthExp: 1.667, lineWidthBold: 0.15,
         minIterations: 1, maxIterations: 8, intermediateSplines: 1,
-        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 7, defaultBrightness: 0.5, defaultContrast: 0.75
       },
       {
         name: "Hilbert", angle: 90,
@@ -225,7 +224,7 @@
         axiom: "A",
         lineWidthExp: 2.0, lineWidthBold: 0.5,
         minIterations: 1, maxIterations: 8, intermediateSplines: 0,
-        defaultIterations: 7, defaultBrightness: 0, defaultContrast: 0.65
+        defaultIterations: 7, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "SierpinskiTriangle", angle: 60,
@@ -233,8 +232,8 @@
         forwardChars: new Set(["F"]),
         axiom: "A",
         lineWidthExp: 2.0, lineWidthBold: 0.4,
-        minIterations: 1, maxIterations: 9, intermediateSplines: 0,
-        defaultIterations: 6, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 12, intermediateSplines: 0,
+        defaultIterations: 9, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "SierpinskiCurve", angle: 45,
@@ -242,8 +241,8 @@
         forwardChars: new Set(["F", "G"]),
         axiom: "F--XF--F--XF",
         lineWidthExp: 2.0, lineWidthBold: 0.15,
-        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
-        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 8, intermediateSplines: 0,
+        defaultIterations: 6, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "SierpinskiSquare", angle: 90,
@@ -251,17 +250,8 @@
         forwardChars: new Set(["F"]),
         axiom: "F+XF+F+XF",
         lineWidthExp: 2.0, lineWidthBold: 0.15,
-        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
-        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
-      },
-      {
-        name: "Gosper", angle: 60,
-        rules: { A: "A-B--B+A++AA+B-", B: "+A-BB--B-A++A+B" },
-        forwardChars: new Set(["A", "B"]),
-        axiom: "A",
-        lineWidthExp: 2.5, lineWidthBold: 0.28,
-        minIterations: 1, maxIterations: 5, intermediateSplines: 0,
-        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 8, intermediateSplines: 0,
+        defaultIterations: 6, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "Peano", angle: 90,
@@ -270,7 +260,7 @@
         axiom: "L",
         lineWidthExp: 3.0, lineWidthBold: 0.35,
         minIterations: 1, maxIterations: 5, intermediateSplines: 0,
-        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "Moore", angle: 90,
@@ -278,8 +268,8 @@
         forwardChars: new Set(["F"]),
         axiom: "AFA+F+AFA",
         lineWidthExp: 2.0, lineWidthBold: 0.2,
-        minIterations: 1, maxIterations: 7, intermediateSplines: 0,
-        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 8, intermediateSplines: 0,
+        defaultIterations: 5, defaultBrightness: 0.3, defaultContrast: 0.75
       },
       {
         name: "QuadraticGosper", angle: 90,
@@ -290,8 +280,8 @@
         forwardChars: new Set(["F"]),
         axiom: "-YF",
         lineWidthExp: 4.0, lineWidthBold: 0.2,
-        minIterations: 1, maxIterations: 3, intermediateSplines: 0,
-        defaultIterations: 2, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 4, intermediateSplines: 0,
+        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "Cross", angle: 90,
@@ -300,7 +290,7 @@
         axiom: "F+F+F+F",
         lineWidthExp: 3.0, lineWidthBold: 0.2,
         minIterations: 1, maxIterations: 6, intermediateSplines: 0,
-        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 5, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "Pentaplexity", angle: 36,
@@ -309,7 +299,7 @@
         axiom: "F++F++F++F++F",
         lineWidthExp: 3.0, lineWidthBold: 0.2,
         minIterations: 1, maxIterations: 5, intermediateSplines: 0,
-        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.75
       },
       {
         name: "Tiles", angle: 90,
@@ -317,8 +307,8 @@
         forwardChars: new Set(["F"]),
         axiom: "F+F+F+F",
         lineWidthExp: 3.0, lineWidthBold: 0.2,
-        minIterations: 1, maxIterations: 5, intermediateSplines: 3,
-        defaultIterations: 3, defaultBrightness: 0, defaultContrast: 0.3
+        minIterations: 1, maxIterations: 6, intermediateSplines: 3,
+        defaultIterations: 4, defaultBrightness: 0.7, defaultContrast: 0.75
       },
       {
         name: "KrishnaAnklets", angle: 45,
@@ -327,7 +317,7 @@
         axiom: "-X--X",
         lineWidthExp: 2.0, lineWidthBold: 0.15,
         minIterations: 1, maxIterations: 7, intermediateSplines: 0,
-        defaultIterations: 4, defaultBrightness: 0, defaultContrast: 0.3
+        defaultIterations: 6, defaultBrightness: 0, defaultContrast: 0.75
       }
     ];
 
@@ -564,7 +554,6 @@
 
     // ========== UI ==========
     const fileInput = document.getElementById("fileInput");
-    const convertBtn = document.getElementById("convertBtn");
     const downloadBtn = document.getElementById("downloadBtn");
     const originalCanvas = document.getElementById("originalCanvas");
     const resultCanvas = document.getElementById("resultCanvas");
@@ -616,25 +605,33 @@
       contrastSlider.value = sys.defaultContrast;
       contrastVal.textContent = sys.defaultContrast;
     }
-    systemSelect.addEventListener("change", applySystemDefaults);
+    systemSelect.addEventListener("change", () => { applySystemDefaults(); runConvert(); });
     applySystemDefaults();
 
     iterSlider.addEventListener("input", () => { iterVal.textContent = iterSlider.value; });
     brightSlider.addEventListener("input", () => { brightVal.textContent = brightSlider.value; });
     contrastSlider.addEventListener("input", () => { contrastVal.textContent = contrastSlider.value; });
 
+    iterSlider.addEventListener("change", runConvert);
+    brightSlider.addEventListener("change", runConvert);
+    contrastSlider.addEventListener("change", runConvert);
+    sizeSlider.addEventListener("change", runConvert);
+
+    let imageLoaded = false;
+
     function loadImageToCanvas(img) {
       originalCanvas.width = img.width;
       originalCanvas.height = img.height;
       originalCanvas.getContext("2d").drawImage(img, 0, 0);
       originalFig.hidden = false;
-      convertBtn.disabled = false;
+      imageLoaded = true;
       status.textContent = `Loaded: ${img.width} x ${img.height}px`;
+      runConvert();
     }
 
     function runConvert() {
+      if (!imageLoaded) return;
       status.textContent = "Generating L-System curve...";
-      convertBtn.disabled = true;
 
       requestAnimationFrame(() => {
         try {
@@ -677,7 +674,6 @@
           status.textContent = "Error: " + err.message;
           console.error(err);
         }
-        convertBtn.disabled = false;
       });
     }
 
@@ -698,8 +694,6 @@
       };
       reader.readAsDataURL(file);
     });
-
-    convertBtn.addEventListener("click", runConvert);
 
     // Load default demo image and render on startup
     const demoImg = new Image();
