@@ -141,6 +141,27 @@
       color: #888;
       min-height: 1.2em;
     }
+
+    .url-input-group input[type="text"] {
+      padding: 0.45rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #16213e;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+    }
+
+    .url-input-group {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      width: 100%;
+      justify-content: center;
+    }
+    .url-input-group input[type="text"] {
+      flex: 1;
+      max-width: 350px;
+    }
   </style>
 </head>
 <body>
@@ -154,6 +175,14 @@
     </label>
     <select id="systemSelect"></select>
     <button id="downloadBtn" disabled>Download</button>
+    <button id="shareBtn" disabled>Share Link</button>
+  </div>
+
+  <div class="controls">
+    <div class="url-input-group">
+      <input type="text" id="urlInput" placeholder="Paste image URL...">
+      <button id="loadUrlBtn" type="button">Load URL</button>
+    </div>
   </div>
 
   <div class="sliders">
@@ -555,6 +584,7 @@
     // ========== UI ==========
     const fileInput = document.getElementById("fileInput");
     const downloadBtn = document.getElementById("downloadBtn");
+    const shareBtn = document.getElementById("shareBtn");
     const originalCanvas = document.getElementById("originalCanvas");
     const resultCanvas = document.getElementById("resultCanvas");
     const originalFig = document.getElementById("originalFig");
@@ -569,6 +599,30 @@
     const contrastVal = document.getElementById("contrastVal");
     const sizeSlider = document.getElementById("sizeSlider");
     const sizeValSpan = document.getElementById("sizeVal");
+    const urlInput = document.getElementById("urlInput");
+    const loadUrlBtn = document.getElementById("loadUrlBtn");
+
+    let currentCloudinaryUrl = null;
+
+    // ========== Cloudinary Upload ==========
+    const CLOUDINARY_CLOUD_NAME = "dbkimqhiz";
+    const CLOUDINARY_UPLOAD_PRESET = "ml_default";
+
+    async function uploadToCloudinary(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error("Cloudinary upload failed: " + text);
+      }
+      const data = await resp.json();
+      return data.secure_url;
+    }
 
     const SIZE_STEPS = [256, 512, 1024, 2048, 4096, 8192];
     function getOutputSize() { return SIZE_STEPS[+sizeSlider.value]; }
@@ -625,8 +679,25 @@
       originalCanvas.getContext("2d").drawImage(img, 0, 0);
       originalFig.hidden = false;
       imageLoaded = true;
+      shareBtn.disabled = !currentCloudinaryUrl;
       status.textContent = `Loaded: ${img.width} x ${img.height}px`;
       runConvert();
+    }
+
+    function loadImageFromUrl(url) {
+      status.textContent = "Loading image from URL...";
+      resultFig.hidden = true;
+      downloadBtn.disabled = true;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        currentFileName = "url_image_lsystem.png";
+        loadImageToCanvas(img);
+      };
+      img.onerror = () => {
+        status.textContent = "Failed to load image from URL. Check the URL or try uploading a local file.";
+      };
+      img.src = url;
     }
 
     function runConvert() {
@@ -677,7 +748,7 @@
       });
     }
 
-    fileInput.addEventListener("change", (e) => {
+    fileInput.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -685,7 +756,10 @@
       status.textContent = "Loading image...";
       resultFig.hidden = true;
       downloadBtn.disabled = true;
+      currentCloudinaryUrl = null;
+      shareBtn.disabled = true;
 
+      // Load image locally for immediate display
       const reader = new FileReader();
       reader.onload = (event) => {
         const img = new Image();
@@ -693,17 +767,115 @@
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+
+      // Upload to Cloudinary in background
+      try {
+        const cloudinaryUrl = await uploadToCloudinary(file);
+        currentCloudinaryUrl = cloudinaryUrl;
+        urlInput.value = cloudinaryUrl;
+        shareBtn.disabled = false;
+        status.textContent += " | Uploaded to Cloudinary.";
+      } catch (err) {
+        status.textContent += " | Cloudinary upload failed: " + err.message;
+        console.warn("Cloudinary upload failed:", err.message);
+      }
     });
 
-    // Load default demo image and render on startup
-    const demoImg = new Image();
-    demoImg.onload = () => {
-      currentFileName = "dag_lsystem.png";
-      loadImageToCanvas(demoImg);
-      runConvert();
-    };
-    demoImg.onerror = () => { status.textContent = "Choose an image to get started."; };
-    demoImg.src = "dag.png";
+    // URL input handler — load image, then upload to Cloudinary for persistence
+    loadUrlBtn.addEventListener("click", async () => {
+      const url = urlInput.value.trim();
+      if (!url) return;
+      currentCloudinaryUrl = null;
+      shareBtn.disabled = true;
+      loadImageFromUrl(url);
+
+      // Upload URL to Cloudinary so the share link is persistent
+      try {
+        const cloudinaryUrl = await uploadToCloudinary(url);
+        currentCloudinaryUrl = cloudinaryUrl;
+        urlInput.value = cloudinaryUrl;
+        shareBtn.disabled = false;
+        status.textContent += " | Uploaded to Cloudinary.";
+      } catch (err) {
+        status.textContent += " | Cloudinary upload failed: " + err.message;
+        console.warn("Cloudinary upload failed:", err.message);
+      }
+    });
+
+    // ========== Shareable Link ==========
+    function generateShareUrl() {
+      if (!currentCloudinaryUrl) return null;
+      const sys = getSelectedSystem();
+      const params = new URLSearchParams({
+        img: currentCloudinaryUrl,
+        sys: sys.name,
+        iter: iterSlider.value,
+        bright: brightSlider.value,
+        contrast: contrastSlider.value,
+        size: sizeSlider.value,
+      });
+      return window.location.origin + window.location.pathname + "?" + params.toString();
+    }
+
+    shareBtn.addEventListener("click", async () => {
+      const url = generateShareUrl();
+      if (!url) {
+        status.textContent = "Upload an image to Cloudinary first to generate a share link.";
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = "Share link copied to clipboard!";
+      } catch {
+        prompt("Copy this share link:", url);
+      }
+    });
+
+    // ========== URL Parameter Parsing ==========
+    function applyUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const imgUrl = params.get("img");
+      if (!imgUrl) return false;
+
+      // Apply system selection
+      const sysName = params.get("sys");
+      if (sysName) {
+        const idx = SYSTEMS.findIndex(s => s.name === sysName);
+        if (idx >= 0) {
+          systemSelect.value = idx;
+          applySystemDefaults();
+        }
+      }
+
+      // Override slider values from URL params (after applySystemDefaults sets ranges)
+      const iter = params.get("iter");
+      const bright = params.get("bright");
+      const contrast = params.get("contrast");
+      const size = params.get("size");
+      if (iter !== null) { iterSlider.value = iter; iterVal.textContent = iter; }
+      if (bright !== null) { brightSlider.value = bright; brightVal.textContent = bright; }
+      if (contrast !== null) { contrastSlider.value = contrast; contrastVal.textContent = contrast; }
+      if (size !== null) { sizeSlider.value = size; sizeValSpan.textContent = SIZE_STEPS[+size]; }
+
+      // Load the image from the Cloudinary URL
+      currentCloudinaryUrl = imgUrl;
+      urlInput.value = imgUrl;
+      shareBtn.disabled = false;
+      loadImageFromUrl(imgUrl);
+      return true;
+    }
+
+    // On startup: check URL params first, fall back to demo image
+    if (!applyUrlParams()) {
+      const demoImg = new Image();
+      demoImg.onload = () => {
+        currentFileName = "dag_lsystem.png";
+        loadImageToCanvas(demoImg);
+        runConvert();
+      };
+      demoImg.onerror = () => { status.textContent = "Choose an image to get started."; };
+      demoImg.src = "dag.png";
+    }
 
     downloadBtn.addEventListener("click", () => {
       resultCanvas.toBlob((blob) => {
