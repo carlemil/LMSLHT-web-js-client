@@ -162,6 +162,14 @@
       flex: 1;
       max-width: 350px;
     }
+    .url-label, .or-label {
+      font-size: 0.85rem;
+      color: #aaa;
+      white-space: nowrap;
+    }
+    .or-label {
+      padding: 0 0.5rem;
+    }
   </style>
 </head>
 <body>
@@ -169,20 +177,20 @@
   <p class="tip">For best results, use high-contrast images with bold, simple subjects — a face, a cartoon character, or a silhouette. Fine details will be lost.</p>
 
   <div class="controls">
+    <div class="url-input-group">
+      <span class="url-label">Image url:</span>
+      <input type="text" id="urlInput" placeholder="Paste image URL...">
+      <button id="loadUrlBtn" type="button">Load Image From URL</button>
+    </div>
+    <span class="or-label">or</span>
     <label class="file-btn">
-      Choose Image
+      Upload Local Image
       <input type="file" id="fileInput" accept="image/*">
     </label>
-    <select id="systemSelect"></select>
-    <button id="downloadBtn" disabled>Download</button>
-    <button id="shareBtn" disabled>Share Link</button>
   </div>
 
   <div class="controls">
-    <div class="url-input-group">
-      <input type="text" id="urlInput" placeholder="Paste image URL...">
-      <button id="loadUrlBtn" type="button">Load URL</button>
-    </div>
+    <select id="systemSelect"></select>
   </div>
 
   <div class="sliders">
@@ -212,6 +220,11 @@
       <figcaption>L-System</figcaption>
       <canvas id="resultCanvas"></canvas>
     </figure>
+  </div>
+
+  <div class="controls">
+    <button id="downloadBtn" disabled>Download</button>
+    <button id="shareBtn" disabled>Share Link</button>
   </div>
 
   <p class="status" id="status"></p>
