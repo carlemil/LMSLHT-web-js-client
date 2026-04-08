@@ -8,224 +8,304 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #1a1a2e;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #0f0f1a;
       color: #e0e0e0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
+      padding: 2.5rem 1.5rem;
     }
 
     h1 {
-      margin-bottom: 1.5rem;
-      font-weight: 300;
-      font-size: 1.8rem;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #a78bfa, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .controls {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 1.5rem;
-      align-items: center;
+    .tip {
+      max-width: 520px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: #666;
+      margin-bottom: 2rem;
+      line-height: 1.5;
     }
 
+    /* ---- Cards ---- */
+    .card {
+      background: #16162a;
+      border: 1px solid #252540;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 1rem;
+    }
+    .card-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ---- Buttons ---- */
     label.file-btn, button {
-      display: inline-block;
-      padding: 0.6rem 1.4rem;
-      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.55rem 1.3rem;
+      border-radius: 8px;
       border: none;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
     }
 
     label.file-btn {
-      background: #0f3460;
-      color: #e0e0e0;
+      background: #1e3a5f;
+      color: #c4d9f2;
+      border: 1px solid #2a4d7a;
     }
-    label.file-btn:hover { background: #16498a; }
+    label.file-btn:hover { background: #264d80; border-color: #3566a3; }
 
     button {
-      background: #533483;
-      color: #e0e0e0;
+      background: #6366f1;
+      color: #fff;
     }
-    button:hover { background: #6b44a0; }
+    button:hover { background: #7c7ff7; }
     button:disabled {
-      opacity: 0.4;
+      opacity: 0.3;
       cursor: not-allowed;
+      background: #3a3a5c;
+      color: #888;
     }
+    button.secondary {
+      background: transparent;
+      border: 1px solid #444;
+      color: #aaa;
+    }
+    button.secondary:hover { border-color: #6366f1; color: #c4c4ff; }
+    button.secondary:disabled { border-color: #333; color: #555; background: transparent; }
 
     input[type="file"] { display: none; }
+
+    /* ---- Image Source Card ---- */
+    .source-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .url-text-input {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      transition: border-color 0.2s;
+    }
+    .url-text-input:focus {
+      outline: none;
+      border-color: #6366f1;
+    }
+    .or-divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #2a2a40;
+    }
+    .or-divider span {
+      font-size: 0.75rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ---- Settings Card ---- */
+    .settings-content {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .settings-controls {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+    select:focus { outline: none; border-color: #6366f1; }
 
     .sliders {
       display: grid;
       grid-template-columns: auto 1fr auto;
-      gap: 0.4rem 1rem;
+      gap: 0.5rem 0.75rem;
       align-items: center;
-      margin-bottom: 1.5rem;
       width: 100%;
-      max-width: 500px;
     }
-
     .sliders label {
-      font-size: 0.85rem;
-      color: #aaa;
+      font-size: 0.8rem;
+      color: #777;
       text-align: right;
     }
-
     .sliders input[type="range"] {
       width: 100%;
-      accent-color: #533483;
+      accent-color: #6366f1;
+      height: 4px;
     }
-
     .sliders .val {
-      font-size: 0.8rem;
-      color: #888;
+      font-size: 0.75rem;
+      color: #555;
       min-width: 2.5em;
       text-align: center;
+      font-variant-numeric: tabular-nums;
     }
 
-    select {
-      padding: 0.5rem 0.8rem;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #16213e;
-      color: #e0e0e0;
-      font-size: 0.95rem;
-      cursor: pointer;
-    }
-
-    .preview {
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      max-width: 100%;
-    }
-
-    .preview figure {
+    /* ---- Original Preview (in settings card) ---- */
+    .original-preview {
       text-align: center;
+      align-self: flex-start;
     }
-
-    .preview figcaption {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      color: #aaa;
+    .original-preview figcaption {
+      font-size: 0.75rem;
+      color: #555;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
-
-    canvas {
-      max-width: 500px;
-      max-height: 500px;
-      width: auto;
-      height: auto;
+    .original-preview canvas {
+      max-width: 200px;
+      max-height: 200px;
       border-radius: 8px;
-      background: #16213e;
+      background: #0f0f1a;
+      border: 1px solid #252540;
     }
 
-    .tip {
-      max-width: 500px;
+    /* ---- Result ---- */
+    .result-section {
       text-align: center;
-      font-size: 0.85rem;
-      color: #999;
-      margin-bottom: 1.5rem;
-      line-height: 1.4;
+      width: 100%;
+      max-width: 1360px;
+      margin-bottom: 1rem;
+    }
+    .result-section figcaption {
+      font-size: 0.75rem;
+      color: #555;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .result-section canvas {
+      max-width: 100%;
+      max-height: 1120px;
+      border-radius: 12px;
+      background: #16162a;
+      border: 1px solid #252540;
+    }
+    .result-buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-bottom: 0.75rem;
     }
 
+    /* ---- Status ---- */
     .status {
-      margin-top: 1rem;
-      font-size: 0.85rem;
-      color: #888;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+      color: #555;
       min-height: 1.2em;
     }
-
-    .url-input-group input[type="text"] {
-      padding: 0.45rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #16213e;
-      color: #e0e0e0;
-      font-size: 0.9rem;
-    }
-
-    .url-input-group {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      width: 100%;
-      justify-content: center;
-    }
-    .url-input-group input[type="text"] {
-      flex: 1;
-      max-width: 350px;
-    }
-    .url-label, .or-label {
-      font-size: 0.85rem;
-      color: #aaa;
-      white-space: nowrap;
-    }
-    .or-label {
-      padding: 0 0.5rem;
-    }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1>L-System Image Converter</h1>
-  <p class="tip">For best results, use high-contrast images with bold, simple subjects — a face, a cartoon character, or a silhouette. Fine details will be lost.</p>
+  <p class="tip">For best results, use high-contrast images with bold, simple subjects — a face, a cartoon character, or a silhouette.</p>
 
-  <div class="controls">
-    <div class="url-input-group">
-      <span class="url-label">Image url:</span>
-      <input type="text" id="urlInput" placeholder="Paste image URL...">
-      <button id="loadUrlBtn" type="button">Load Image From URL</button>
+  <div class="card">
+    <span class="card-label">Image Source</span>
+    <div class="source-row">
+      <input type="text" id="urlInput" class="url-text-input" placeholder="https://example.com/image.jpg">
+      <button id="loadUrlBtn" type="button">Load URL</button>
     </div>
-    <span class="or-label">or</span>
-    <label class="file-btn">
+    <div class="or-divider"><span>or</span></div>
+    <label class="file-btn" style="width:100%; text-align:center;">
       Upload Local Image
       <input type="file" id="fileInput" accept="image/*">
     </label>
   </div>
 
-  <div class="controls">
-    <select id="systemSelect"></select>
+  <div class="card">
+    <div class="settings-content">
+      <div class="settings-controls">
+        <span class="card-label">Settings</span>
+        <select id="systemSelect"></select>
+        <div class="sliders">
+          <label for="iterSlider">Iterations</label>
+          <input type="range" id="iterSlider" min="1" max="8" value="3" step="1">
+          <span class="val" id="iterVal">3</span>
+
+          <label for="brightSlider">Darkness</label>
+          <input type="range" id="brightSlider" min="-2" max="2" value="0" step="0.1">
+          <span class="val" id="brightVal">0</span>
+
+          <label for="contrastSlider">Contrast</label>
+          <input type="range" id="contrastSlider" min="0" max="1" value="0.3" step="0.05">
+          <span class="val" id="contrastVal">0.3</span>
+
+          <label for="sizeSlider">Output Size</label>
+          <input type="range" id="sizeSlider" min="0" max="5" value="2" step="1">
+          <span class="val" id="sizeVal">1024</span>
+        </div>
+      </div>
+
+      <div id="originalFig" class="original-preview" hidden>
+        <span class="card-label">Original</span>
+        <canvas id="originalCanvas"></canvas>
+      </div>
+    </div>
   </div>
 
-  <div class="sliders">
-    <label for="iterSlider">Iterations</label>
-    <input type="range" id="iterSlider" min="1" max="8" value="3" step="1">
-    <span class="val" id="iterVal">3</span>
-
-    <label for="brightSlider">Darkness</label>
-    <input type="range" id="brightSlider" min="-2" max="2" value="0" step="0.1">
-    <span class="val" id="brightVal">0</span>
-
-    <label for="contrastSlider">Contrast</label>
-    <input type="range" id="contrastSlider" min="0" max="1" value="0.3" step="0.05">
-    <span class="val" id="contrastVal">0.3</span>
-
-    <label for="sizeSlider">Output Size</label>
-    <input type="range" id="sizeSlider" min="0" max="5" value="2" step="1">
-    <span class="val" id="sizeVal">1024</span>
-  </div>
-
-  <div class="preview">
-    <figure id="originalFig" hidden>
-      <figcaption>Original</figcaption>
-      <canvas id="originalCanvas"></canvas>
-    </figure>
-    <figure id="resultFig" hidden>
-      <figcaption>L-System</figcaption>
-      <canvas id="resultCanvas"></canvas>
-    </figure>
-  </div>
-
-  <div class="controls">
-    <button id="downloadBtn" disabled>Download</button>
-    <button id="shareBtn" disabled>Share Link</button>
-  </div>
+  <figure id="resultFig" class="result-section" hidden>
+    <div class="result-buttons">
+      <button id="downloadBtn" disabled>Download</button>
+      <button id="shareBtn" class="secondary" disabled>Share Link</button>
+    </div>
+    <figcaption>Result</figcaption>
+    <canvas id="resultCanvas"></canvas>
+  </figure>
 
   <p class="status" id="status"></p>
 
@@ -902,7 +982,7 @@
     });
   </script>
 
-  <footer style="margin-top: 2rem; text-align: center; font-size: 0.85rem; color: #888;">
+  <footer style="margin-top: 3rem; text-align: center; font-size: 0.75rem; color: #444;">
     <p><a href="mailto:erbsman@gmail.com" title="Carl-Emil Kjellstrand" style="color: #aaa;">Carl-Emil Kjellstrand</a></p>
     <p>&copy; 2025 Carl-Emil Kjellstrand</p>
   </footer>
